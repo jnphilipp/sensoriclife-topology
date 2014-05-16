@@ -1,11 +1,11 @@
-cities=NUMBER OF CITIES
-districts=NUMBER OF DISTRICTS
-streets=NUMBER OF STREETS
-buildings=NUMBER OF BUILDINGS
-residentialUnits=NUMBER OF RESIDENTIAL UNITS
-users=NUMBER OF USERS IN PERCENT
-realtime=BOOLEAN
-timefactor=NUMBER OF DIVISOR FOR REALTIME
+generator.cities=NUMBER OF CITIES
+generator.districts=NUMBER OF DISTRICTS
+generator.streets=NUMBER OF STREETS
+generator.buildings=NUMBER OF BUILDINGS
+generator.residentialUnits=NUMBER OF RESIDENTIAL UNITS
+generator.users=NUMBER OF USERS IN PERCENT
+generator.realtime=BOOLEAN
+generator.timefactor=NUMBER OF DIVISOR FOR REALTIME
 
 accumulo.name=NAME
 accumulo.zooServers=SERVERS
