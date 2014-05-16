@@ -1,0 +1,9 @@
+nbactions.xml
+target
+data/*
+config/*.properties
+src/main/resources/config.properties
+logs/*
+.settings/*
+.project
+.classpath
