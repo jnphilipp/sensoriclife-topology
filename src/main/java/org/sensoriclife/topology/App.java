@@ -15,6 +15,7 @@ import java.util.Map;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.sensoriclife.Logger;
 import org.sensoriclife.db.Accumulo;
 import org.sensoriclife.generator.electricity.ElectricityGenerator;
@@ -53,6 +54,7 @@ public class App {
 
 		Map<String, String> defaults = new LinkedHashMap<>();
 		defaults.put("realtime", "true");
+		defaults.put("accumulo.table_name", "sensoriclife");
 		defaults.put("storm.debug", "false");
 		defaults.put("storm.name", "test");
 		org.sensoriclife.Config.getInstance().setDefaults(defaults);
@@ -76,9 +78,14 @@ public class App {
 
 		TopologyBuilder builder = new TopologyBuilder();
 
-		if ( world ) {
-			builder.setSpout("worldgenerator", new WorldGenerator(), 1);
-			builder.setBolt("worldbolt", new WorldBolt()).shuffleGrouping("worldgenerator");
+		try {
+			if ( world ) {
+				builder.setSpout("worldgenerator", new WorldGenerator(), 1);
+				builder.setBolt("worldbolt", new WorldBolt()).shuffleGrouping("worldgenerator");
+			}
+		}
+		catch ( TableNotFoundException e ) {
+			Logger.error(App.class, e.toString());
 		}
 
 		builder.setSpout("electricitygenerator", new ElectricityGenerator(), 1);

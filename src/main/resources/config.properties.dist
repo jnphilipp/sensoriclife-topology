@@ -11,6 +11,7 @@ accumulo.name=NAME
 accumulo.zooServers=SERVERS
 accumulo.user=USER
 accumulo.password=PASSWORD
+accumulo.table_name=TABLE NAME
 
 storm.debug=FALSE
 storm.name=NAME
