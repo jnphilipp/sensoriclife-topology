@@ -6,12 +6,14 @@ generator.residentialUnits=NUMBER OF RESIDENTIAL UNITS
 generator.users=NUMBER OF USERS IN PERCENT
 generator.realtime=BOOLEAN
 generator.timefactor=NUMBER OF DIVISOR FOR REALTIME
+generator.table_name=TABLE NAME TO STORE WORLD
 
 accumulo.name=NAME
 accumulo.zooServers=SERVERS
 accumulo.user=USER
 accumulo.password=PASSWORD
 accumulo.table_name=TABLE NAME
+accumulo.batch_writer.max_memory=MAXIMUM MEMORY FOR BATCH WRITER
 
 storm.debug=FALSE
 storm.name=NAME
