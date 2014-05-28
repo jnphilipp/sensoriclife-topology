@@ -7,6 +7,7 @@ import backtype.storm.generated.AlreadyAliveException;
 import backtype.storm.generated.InvalidTopologyException;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -39,6 +40,7 @@ public class App {
 		Logger.getInstance();
 
 		boolean world = false;
+		String confFile = "";
 		if ( args.length != 0 ) {
 			List<String> l = Arrays.asList(args);
 			Iterator<String> it = l.iterator();
@@ -47,6 +49,9 @@ public class App {
 				switch ( it.next() ) {
 					case "world":
 						world = true;
+						break;
+					case "-conf":
+						confFile = it.next();
 						break;
 				}
 			}
@@ -57,6 +62,17 @@ public class App {
 		defaults.put("accumulo.table_name", "sensoriclife");
 		defaults.put("storm.debug", "false");
 		defaults.put("storm.name", "test");
+		defaults.put("strom.num_workers", "1");
+
+		try {
+			if ( !confFile.isEmpty() )
+				org.sensoriclife.Config.load(confFile);
+			else
+				org.sensoriclife.Config.load();
+		}
+		catch ( IOException e ) {
+			Logger.error("Cannot load config file.", e.toString());
+		}
 		org.sensoriclife.Config.getInstance().setDefaults(defaults);
 
 
@@ -83,6 +99,8 @@ public class App {
 				builder.setSpout("worldgenerator", new WorldGenerator(), 1);
 				builder.setBolt("worldbolt", new WorldBolt()).shuffleGrouping("worldgenerator");
 			}
+			else
+				WorldGenerator.setCreated(true);
 		}
 		catch ( TableNotFoundException e ) {
 			Logger.error(App.class, e.toString());
@@ -92,19 +110,20 @@ public class App {
 		builder.setSpout("watergenerator", new WaterGenerator(), 1);
 		builder.setSpout("heatinggenerator", new HeatingGenerator(), 1);
 
-		builder.setBolt("electricitybolt", new ElectricityBolt()).shuffleGrouping("electricitygenerator");
-		builder.setBolt("hotwaterbolt", new HotWaterBolt()).shuffleGrouping("watergenerator","hotwater");
-		builder.setBolt("coldwaterbolt", new ColdWaterBolt()).shuffleGrouping("watergenerator","coldwater");
-		builder.setBolt("heatingbolt", new HeatingBolt()).shuffleGrouping("heatinggenerator");
+		builder.setBolt("electricitybolt", new ElectricityBolt(), 5).shuffleGrouping("electricitygenerator");
+		builder.setBolt("hotwaterbolt", new HotWaterBolt(), 5).shuffleGrouping("watergenerator","hotwater");
+		builder.setBolt("coldwaterbolt", new ColdWaterBolt(), 5).shuffleGrouping("watergenerator","coldwater");
+		builder.setBolt("heatingbolt", new HeatingBolt(), 5).shuffleGrouping("heatinggenerator");
 
 		if ( world )
-			builder.setBolt("accumulobolt", new AccumuloBolt(), 4).shuffleGrouping("worldbolt").shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
+			builder.setBolt("accumulobolt", new AccumuloBolt(), 20).shuffleGrouping("worldbolt").shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
 		else
-			builder.setBolt("accumulobolt", new AccumuloBolt(), 4).shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
+			builder.setBolt("accumulobolt", new AccumuloBolt(), 20).shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
 
 		//for test
 		Config conf = new Config();
 		conf.setDebug(org.sensoriclife.Config.getBooleanProperty("storm.debug"));
+		conf.setNumWorkers(org.sensoriclife.Config.getIntegerProperty("strom.num_workers"));
 
 		if ( org.sensoriclife.Config.getBooleanProperty("storm.debug") ) {
 			LocalCluster cluster = new LocalCluster();

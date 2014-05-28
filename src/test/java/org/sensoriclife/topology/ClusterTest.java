@@ -8,7 +8,7 @@ import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.utils.Utils;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.Map.Entry;
+import java.util.Map;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -16,7 +16,9 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.sensoriclife.db.Accumulo;
 import org.sensoriclife.generator.electricity.ElectricityGenerator;
 import org.sensoriclife.generator.heating.HeatingGenerator;
@@ -34,7 +36,10 @@ import org.sensoriclife.storm.bolts.WorldBolt;
  * @author jnphilipp
  * @version 0.0.1
  */
-public class AppTest {
+public class ClusterTest {
+	@Rule
+	public TemporaryFolder tmpDirectory = new TemporaryFolder();
+
 	@BeforeClass
 	public static void setUp() {
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.cities", "1");
@@ -52,15 +57,15 @@ public class AppTest {
 	}
 
 	@Test
-	public void testTopology() throws TableNotFoundException, AccumuloException, AccumuloSecurityException, TableExistsException, IOException, InterruptedException {
-		Accumulo.getInstance().connect();
+	public void testTopologyCluster() throws TableNotFoundException, AccumuloException, AccumuloSecurityException, TableExistsException, IOException, InterruptedException {
+		Accumulo.getInstance().connect(this.tmpDirectory.newFolder(), "password");
 		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name"), false);
 		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("accumulo.table_name"), false);
 
-		TopologyBuilder builder = new TopologyBuilder();
-
 		new WorldBolt();
 		assertTrue(0 == WorldBolt.getCount());
+
+		TopologyBuilder builder = new TopologyBuilder();
 
 		builder.setSpout("worldgenerator", new WorldGenerator(false), 1);
 		builder.setBolt("worldbolt", new WorldBolt()).shuffleGrouping("worldgenerator");
@@ -89,11 +94,12 @@ public class AppTest {
 		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("generator.table_name"));
 		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("accumulo.table_name"));
 
-		Iterator<Entry<Key, Value>> iterator = Accumulo.getInstance().scanAll(org.sensoriclife.Config.getProperty("accumulo.table_name"));
+		Iterator<Map.Entry<Key, Value>> iterator = Accumulo.getInstance().scanAll(org.sensoriclife.Config.getProperty("accumulo.table_name"));
 		int i = 0;
 		for ( ; iterator.hasNext(); ++i ) {iterator.next();}
 
 		new WorldBolt();
+		assertTrue(i > 0);
 		assertTrue(i > WorldBolt.getCount());
 
 		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name"));

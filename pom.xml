@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>sensoriclife</groupId>
 	<artifactId>topology</artifactId>
-	<version>0.1.1</version>
+	<version>0.1.2</version>
 	<packaging>jar</packaging>
 
 	<name>topology</name>
@@ -30,17 +30,17 @@
 		<dependency>
 			<groupId>sensoriclife</groupId>
 			<artifactId>lib</artifactId>
-			<version>0.3.1</version>
+			<version>0.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>sensoriclife</groupId>
 			<artifactId>storm</artifactId>
-			<version>0.3.2</version>
+			<version>0.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>sensoriclife</groupId>
 			<artifactId>generator</artifactId>
-			<version>0.3.2</version>
+			<version>0.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
