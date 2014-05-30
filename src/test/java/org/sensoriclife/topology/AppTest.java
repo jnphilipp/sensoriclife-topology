@@ -82,7 +82,7 @@ public class AppTest {
 
 		LocalCluster cluster = new LocalCluster();
 		cluster.submitTopology("test", conf, builder.createTopology());
-		Utils.sleep(300000);
+		Utils.sleep(60000);
 		cluster.killTopology("test");
 		cluster.shutdown();
 

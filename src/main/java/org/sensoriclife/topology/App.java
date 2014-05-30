@@ -39,7 +39,7 @@ public class App {
 	public static void main(String args[]) {
 		Logger.getInstance();
 
-		boolean world = false;
+		boolean world = false, createTables = false;
 		String confFile = "";
 		if ( args.length != 0 ) {
 			List<String> l = Arrays.asList(args);
@@ -47,8 +47,11 @@ public class App {
 
 			while ( it.hasNext() ) {
 				switch ( it.next() ) {
-					case "world":
+					case "--world":
 						world = true;
+						break;
+					case "--create-tables":
+						createTables = true;
 						break;
 					case "-conf":
 						confFile = it.next();
@@ -58,11 +61,12 @@ public class App {
 		}
 
 		Map<String, String> defaults = new LinkedHashMap<>();
-		defaults.put("realtime", "true");
-		defaults.put("accumulo.table_name", "sensoriclife");
+		defaults.put("generator.realtime", "true");
+		defaults.put("generator.table_name", "sensoriclife_generator");
+		defaults.put("accumulo.table_name", "sensoriclife_consumptioun");
 		defaults.put("storm.debug", "false");
-		defaults.put("storm.name", "test");
 		defaults.put("strom.num_workers", "1");
+		org.sensoriclife.Config.getInstance();
 
 		try {
 			if ( !confFile.isEmpty() )
@@ -79,11 +83,17 @@ public class App {
 		try {
 			if ( org.sensoriclife.Config.getProperty("accumulo.name").isEmpty() && org.sensoriclife.Config.getProperty("accumulo.zooServers").isEmpty() && org.sensoriclife.Config.getProperty("accumulo.user").isEmpty() && org.sensoriclife.Config.getProperty("accumulo.password").isEmpty() ){
 				Accumulo.getInstance().connect();
-				Accumulo.getInstance().createTable("generator_helper_table");
-				Accumulo.getInstance().createTable("sensoriclife");
+				Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name"), false);
+				Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("accumulo.table_name"), false);
 			}
-			else
+			else {
 				Accumulo.getInstance().connect(org.sensoriclife.Config.getProperty("accumulo.name"), org.sensoriclife.Config.getProperty("accumulo.zooServers"), org.sensoriclife.Config.getProperty("accumulo.user"), org.sensoriclife.Config.getProperty("accumulo.password"));
+
+				if ( createTables ) {
+					Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name"), false);
+					Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("accumulo.table_name"), false);
+				}
+			}
 		}
 		catch ( AccumuloException | AccumuloSecurityException e ) {
 			Logger.error("Error while connecting to accumulo.", e.toString());

@@ -50,7 +50,7 @@ public class ClusterTest {
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.users", "99");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.table_name", "sensoriclife_generator");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.realtime", "true");
-		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.timefactor", "1");
+		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.timefactor", "4");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("accumulo.table_name", "sensoriclife");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("storm.debug", "true");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("accumulo.batch_writer.max_memory", "10000000");
@@ -87,7 +87,7 @@ public class ClusterTest {
 
 		LocalCluster cluster = new LocalCluster();
 		cluster.submitTopology("test", conf, builder.createTopology());
-		Utils.sleep(300000);
+		Utils.sleep(600000);
 		cluster.killTopology("test");
 		cluster.shutdown();
 
@@ -100,7 +100,7 @@ public class ClusterTest {
 
 		new WorldBolt();
 		assertTrue(i > 0);
-		assertTrue(i > WorldBolt.getCount());
+		assertTrue(i > WorldBolt.getCount() * 9);
 
 		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name"));
 		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("accumulo.table_name"));
