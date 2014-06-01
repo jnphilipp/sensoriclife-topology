@@ -33,7 +33,7 @@ import org.sensoriclife.storm.bolts.WorldBolt;
 /**
  *
  * @author jnphilipp
- * @version 0.0.1
+ * @version 0.0.2
  */
 public class App {
 	public static void main(String args[]) {
@@ -62,6 +62,7 @@ public class App {
 
 		Map<String, String> defaults = new LinkedHashMap<>();
 		defaults.put("generator.realtime", "true");
+		defaults.put("generator.timefactor", "1");
 		defaults.put("generator.table_name", "sensoriclife_generator");
 		defaults.put("accumulo.table_name", "sensoriclife_consumptioun");
 		defaults.put("storm.debug", "false");
@@ -97,7 +98,7 @@ public class App {
 		}
 		catch ( AccumuloException | AccumuloSecurityException e ) {
 			Logger.error("Error while connecting to accumulo.", e.toString());
-		} 
+		}
 		catch (TableExistsException e) {
 			Logger.error("Error while creating table.", e.toString());
 		}
@@ -106,8 +107,8 @@ public class App {
 
 		try {
 			if ( world ) {
-				builder.setSpout("worldgenerator", new WorldGenerator(), 1);
-				builder.setBolt("worldbolt", new WorldBolt()).shuffleGrouping("worldgenerator");
+				builder.setSpout("worldgenerator", new WorldGenerator(org.sensoriclife.Config.toMap()), 1);
+				builder.setBolt("worldbolt", new WorldBolt(Accumulo.getInstance(), org.sensoriclife.Config.getProperty("accumulo.table_name"))).shuffleGrouping("worldgenerator");
 			}
 			else
 				WorldGenerator.setCreated(true);
@@ -116,9 +117,9 @@ public class App {
 			Logger.error(App.class, e.toString());
 		}
 
-		builder.setSpout("electricitygenerator", new ElectricityGenerator(), 1);
-		builder.setSpout("watergenerator", new WaterGenerator(), 1);
-		builder.setSpout("heatinggenerator", new HeatingGenerator(), 1);
+		builder.setSpout("electricitygenerator", new ElectricityGenerator(org.sensoriclife.Config.toMap()), 1);
+		builder.setSpout("watergenerator", new WaterGenerator(org.sensoriclife.Config.toMap()), 1);
+		builder.setSpout("heatinggenerator", new HeatingGenerator(org.sensoriclife.Config.toMap()), 1);
 
 		builder.setBolt("electricitybolt", new ElectricityBolt(), 5).shuffleGrouping("electricitygenerator");
 		builder.setBolt("hotwaterbolt", new HotWaterBolt(), 5).shuffleGrouping("watergenerator","hotwater");
@@ -126,9 +127,9 @@ public class App {
 		builder.setBolt("heatingbolt", new HeatingBolt(), 5).shuffleGrouping("heatinggenerator");
 
 		if ( world )
-			builder.setBolt("accumulobolt", new AccumuloBolt(), 20).shuffleGrouping("worldbolt").shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
+			builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), 20).shuffleGrouping("worldbolt").shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
 		else
-			builder.setBolt("accumulobolt", new AccumuloBolt(), 20).shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
+			builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), 20).shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
 
 		//for test
 		Config conf = new Config();
