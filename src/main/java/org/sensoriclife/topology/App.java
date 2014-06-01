@@ -33,7 +33,7 @@ import org.sensoriclife.storm.bolts.WorldBolt;
 /**
  *
  * @author jnphilipp
- * @version 0.0.2
+ * @version 0.1.0
  */
 public class App {
 	public static void main(String args[]) {
@@ -105,31 +105,28 @@ public class App {
 
 		TopologyBuilder builder = new TopologyBuilder();
 
-		try {
-			if ( world ) {
+		if ( world ) {
+			try {
 				builder.setSpout("worldgenerator", new WorldGenerator(org.sensoriclife.Config.toMap()), 1);
 				builder.setBolt("worldbolt", new WorldBolt(Accumulo.getInstance(), org.sensoriclife.Config.getProperty("accumulo.table_name"))).shuffleGrouping("worldgenerator");
+				builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), 20).shuffleGrouping("worldbolt");
 			}
-			else
-				WorldGenerator.setCreated(true);
+			catch ( TableNotFoundException e ) {
+				Logger.error(App.class, e.toString());
+			}
 		}
-		catch ( TableNotFoundException e ) {
-			Logger.error(App.class, e.toString());
-		}
+		else {
+			builder.setSpout("electricitygenerator", new ElectricityGenerator(org.sensoriclife.Config.toMap()), 1);
+			builder.setSpout("watergenerator", new WaterGenerator(org.sensoriclife.Config.toMap()), 1);
+			builder.setSpout("heatinggenerator", new HeatingGenerator(org.sensoriclife.Config.toMap()), 1);
 
-		builder.setSpout("electricitygenerator", new ElectricityGenerator(org.sensoriclife.Config.toMap()), 1);
-		builder.setSpout("watergenerator", new WaterGenerator(org.sensoriclife.Config.toMap()), 1);
-		builder.setSpout("heatinggenerator", new HeatingGenerator(org.sensoriclife.Config.toMap()), 1);
+			builder.setBolt("electricitybolt", new ElectricityBolt(), 5).shuffleGrouping("electricitygenerator");
+			builder.setBolt("hotwaterbolt", new HotWaterBolt(), 5).shuffleGrouping("watergenerator","hotwater");
+			builder.setBolt("coldwaterbolt", new ColdWaterBolt(), 5).shuffleGrouping("watergenerator","coldwater");
+			builder.setBolt("heatingbolt", new HeatingBolt(), 5).shuffleGrouping("heatinggenerator");
 
-		builder.setBolt("electricitybolt", new ElectricityBolt(), 5).shuffleGrouping("electricitygenerator");
-		builder.setBolt("hotwaterbolt", new HotWaterBolt(), 5).shuffleGrouping("watergenerator","hotwater");
-		builder.setBolt("coldwaterbolt", new ColdWaterBolt(), 5).shuffleGrouping("watergenerator","coldwater");
-		builder.setBolt("heatingbolt", new HeatingBolt(), 5).shuffleGrouping("heatinggenerator");
-
-		if ( world )
-			builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), 20).shuffleGrouping("worldbolt").shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
-		else
 			builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), 20).shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
+		}
 
 		//for test
 		Config conf = new Config();

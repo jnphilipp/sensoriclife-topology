@@ -32,7 +32,7 @@ import org.sensoriclife.storm.bolts.WorldBolt;
 /**
  *
  * @author jnphilipp
- * @version 0.0.1
+ * @version 0.0.2
  */
 public class AppTest {
 	@BeforeClass
@@ -64,6 +64,19 @@ public class AppTest {
 
 		builder.setSpout("worldgenerator", new WorldGenerator(false), 1);
 		builder.setBolt("worldbolt", new WorldBolt()).shuffleGrouping("worldgenerator");
+		builder.setBolt("accumulobolt", new AccumuloBolt(), 4).shuffleGrouping("worldbolt");
+
+		Config conf = new Config();
+		conf.setDebug(true);
+		conf.setNumWorkers(8);
+
+		LocalCluster cluster = new LocalCluster();
+		cluster.submitTopology("test", conf, builder.createTopology());
+		Utils.sleep(60000);
+		cluster.killTopology("test");
+		cluster.shutdown();
+
+		builder = new TopologyBuilder();
 
 		builder.setSpout("electricitygenerator", new ElectricityGenerator(), 1);
 		builder.setSpout("watergenerator", new WaterGenerator(), 1);
@@ -73,14 +86,9 @@ public class AppTest {
 		builder.setBolt("hotwaterbolt", new HotWaterBolt(), 1).shuffleGrouping("watergenerator", "hotwater");
 		builder.setBolt("coldwaterbolt", new ColdWaterBolt(), 1).shuffleGrouping("watergenerator", "coldwater");
 		builder.setBolt("heatingbolt", new HeatingBolt(), 1).shuffleGrouping("heatinggenerator");
-		builder.setBolt("accumulobolt", new AccumuloBolt(), 4).shuffleGrouping("worldbolt").shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
+		builder.setBolt("accumulobolt", new AccumuloBolt(), 4).shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
 
-		//for test
-		Config conf = new Config();
-		conf.setDebug(true);
-		conf.setNumWorkers(8);
-
-		LocalCluster cluster = new LocalCluster();
+		cluster = new LocalCluster();
 		cluster.submitTopology("test", conf, builder.createTopology());
 		Utils.sleep(60000);
 		cluster.killTopology("test");
