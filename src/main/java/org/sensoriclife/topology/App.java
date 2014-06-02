@@ -120,12 +120,12 @@ public class App {
 			builder.setSpout("watergenerator", new WaterGenerator(org.sensoriclife.Config.toMap()), 1);
 			builder.setSpout("heatinggenerator", new HeatingGenerator(org.sensoriclife.Config.toMap()), 1);
 
-			builder.setBolt("electricitybolt", new ElectricityBolt(), 5).shuffleGrouping("electricitygenerator");
-			builder.setBolt("hotwaterbolt", new HotWaterBolt(), 5).shuffleGrouping("watergenerator", "hotwater");
-			builder.setBolt("coldwaterbolt", new ColdWaterBolt(), 5).shuffleGrouping("watergenerator", "coldwater");
-			builder.setBolt("heatingbolt", new HeatingBolt(), 5).shuffleGrouping("heatinggenerator");
+			builder.setBolt("electricitybolt", new ElectricityBolt(), org.sensoriclife.Config.getIntegerProperty("storm.num_electricitybolt")).shuffleGrouping("electricitygenerator");
+			builder.setBolt("hotwaterbolt", new HotWaterBolt(), org.sensoriclife.Config.getIntegerProperty("storm.num_hotwaterbolt")).shuffleGrouping("watergenerator", "hotwater");
+			builder.setBolt("coldwaterbolt", new ColdWaterBolt(), org.sensoriclife.Config.getIntegerProperty("storm.num_coldwaterbolt")).shuffleGrouping("watergenerator", "coldwater");
+			builder.setBolt("heatingbolt", new HeatingBolt(), org.sensoriclife.Config.getIntegerProperty("storm.num_heatingbolt")).shuffleGrouping("heatinggenerator");
 
-			builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), 20).shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
+			builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), org.sensoriclife.Config.getIntegerProperty("storm.num_accumulobolt")).shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
 		}
 
 		//for test
