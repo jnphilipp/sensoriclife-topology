@@ -121,8 +121,8 @@ public class App {
 			builder.setSpout("heatinggenerator", new HeatingGenerator(org.sensoriclife.Config.toMap()), 1);
 
 			builder.setBolt("electricitybolt", new ElectricityBolt(), 5).shuffleGrouping("electricitygenerator");
-			builder.setBolt("hotwaterbolt", new HotWaterBolt(), 5).shuffleGrouping("watergenerator","hotwater");
-			builder.setBolt("coldwaterbolt", new ColdWaterBolt(), 5).shuffleGrouping("watergenerator","coldwater");
+			builder.setBolt("hotwaterbolt", new HotWaterBolt(), 5).shuffleGrouping("watergenerator", "hotwater");
+			builder.setBolt("coldwaterbolt", new ColdWaterBolt(), 5).shuffleGrouping("watergenerator", "coldwater");
 			builder.setBolt("heatingbolt", new HeatingBolt(), 5).shuffleGrouping("heatinggenerator");
 
 			builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), 20).shuffleGrouping("electricitybolt").shuffleGrouping("hotwaterbolt").shuffleGrouping("coldwaterbolt").shuffleGrouping("heatingbolt");
