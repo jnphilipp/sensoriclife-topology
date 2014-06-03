@@ -35,7 +35,7 @@
 		<dependency>
 			<groupId>sensoriclife</groupId>
 			<artifactId>storm</artifactId>
-			<version>0.4.4</version>
+			<version>0.4.5</version>
 		</dependency>
 		<dependency>
 			<groupId>sensoriclife</groupId>

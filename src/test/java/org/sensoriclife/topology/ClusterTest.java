@@ -65,6 +65,7 @@ public class ClusterTest {
 		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name"), false);
 		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("accumulo.table_name"), false);
 
+		WorldBolt.setCount(0);
 		new WorldBolt();
 		assertTrue(0 == WorldBolt.getCount());
 
