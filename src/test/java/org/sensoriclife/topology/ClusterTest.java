@@ -11,10 +11,12 @@ import java.util.Iterator;
 import java.util.Map;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.apache.hadoop.io.Text;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,11 +32,12 @@ import org.sensoriclife.storm.bolts.ElectricityBolt;
 import org.sensoriclife.storm.bolts.HeatingBolt;
 import org.sensoriclife.storm.bolts.HotWaterBolt;
 import org.sensoriclife.storm.bolts.WorldBolt;
+import org.sensoriclife.util.Helpers;
 
 /**
  *
  * @author jnphilipp
- * @version 0.0.1
+ * @version 0.0.2
  */
 public class ClusterTest {
 	@Rule
@@ -109,6 +112,26 @@ public class ClusterTest {
 		new WorldBolt();
 		assertTrue(i > 0);
 		assertTrue(i > WorldBolt.getCount() * 9);
+
+		Scanner scanner = Accumulo.getInstance().getScanner(org.sensoriclife.Config.getProperty("accumulo.table_name"));
+		scanner.fetchColumn(new Text(Helpers.toByteArray("device")), new Text(Helpers.toByteArray("amount")));
+		assertTrue(scanner.getBatchSize() > 0);
+		scanner.close();
+
+		scanner = Accumulo.getInstance().getScanner(org.sensoriclife.Config.getProperty("accumulo.table_name"));
+		scanner.fetchColumn(new Text(Helpers.toByteArray("residential")), new Text(Helpers.toByteArray("id")));
+		assertTrue(scanner.getBatchSize() > 0);
+		scanner.close();
+
+		scanner = Accumulo.getInstance().getScanner(org.sensoriclife.Config.getProperty("accumulo.table_name"));
+		scanner.fetchColumn(new Text(Helpers.toByteArray("user")), new Text(Helpers.toByteArray("id")));
+		assertTrue(scanner.getBatchSize() > 0);
+		scanner.close();
+
+		scanner = Accumulo.getInstance().getScanner(org.sensoriclife.Config.getProperty("accumulo.table_name"));
+		scanner.fetchColumn(new Text(Helpers.toByteArray("user")), new Text(Helpers.toByteArray("residential")));
+		assertTrue(scanner.getBatchSize() > 0);
+		scanner.close();
 
 		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name"));
 		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("accumulo.table_name"));
