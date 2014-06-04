@@ -37,7 +37,7 @@ import org.sensoriclife.util.Helpers;
 /**
  *
  * @author jnphilipp
- * @version 0.0.2
+ * @version 0.0.3
  */
 public class ClusterTest {
 	@Rule
@@ -51,7 +51,9 @@ public class ClusterTest {
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.buildings", "10");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.residentialUnits", "10");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.users", "99");
-		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.table_name", "sensoriclife_generator");
+		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.table_name_electricity", "sensoriclife_electricity");
+		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.table_name_water", "sensoriclife_water");
+		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.table_name_heating", "sensoriclife_heating");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.realtime", "true");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.timefactor", "4");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("accumulo.table_name", "sensoriclife");
@@ -62,7 +64,9 @@ public class ClusterTest {
 	@Test
 	public void testTopologyCluster() throws TableNotFoundException, AccumuloException, AccumuloSecurityException, TableExistsException, IOException, InterruptedException {
 		Accumulo.getInstance().connect(this.tmpDirectory.newFolder(), "password");
-		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name"), false);
+		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_electricity"));
+		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_water"));
+		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_heating"));
 		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("accumulo.table_name"), false);
 
 		WorldBolt.setCount(0);
@@ -103,7 +107,9 @@ public class ClusterTest {
 		cluster.killTopology("test");
 		cluster.shutdown();
 
-		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("generator.table_name"));
+		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("generator.table_name_electricity"));
+		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("generator.table_name_water"));
+		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("generator.table_name_heating"));
 		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("accumulo.table_name"));
 
 		Iterator<Map.Entry<Key, Value>> iterator = Accumulo.getInstance().scanAll(org.sensoriclife.Config.getProperty("accumulo.table_name"));
@@ -134,7 +140,9 @@ public class ClusterTest {
 		assertTrue(scanner.getBatchSize() > 0);
 		scanner.close();
 
-		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name"));
+		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name_electricity"));
+		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name_water"));
+		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name_heating"));
 		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("accumulo.table_name"));
 		Accumulo.getInstance().disconnect();
 	}

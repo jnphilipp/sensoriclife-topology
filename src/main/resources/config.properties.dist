@@ -6,7 +6,9 @@ generator.residentialUnits=NUMBER OF RESIDENTIAL UNITS
 generator.users=NUMBER OF USERS IN PERCENT
 generator.realtime=BOOLEAN
 generator.timefactor=NUMBER OF DIVISOR FOR REALTIME
-generator.table_name=TABLE NAME TO STORE WORLD
+generator.table_name_electricity=TABLE NAME TO STORE WORLD ELECTRICITY
+generator.table_name_water=TABLE NAME TO STORE WORLD WATER
+generator.table_name_heating=TABLE NAME TO STORE WORLD HEATING
 
 accumulo.name=NAME
 accumulo.zooServers=SERVERS

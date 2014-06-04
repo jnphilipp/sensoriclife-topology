@@ -32,7 +32,7 @@ import org.sensoriclife.storm.bolts.WorldBolt;
 /**
  *
  * @author jnphilipp
- * @version 0.0.2
+ * @version 0.0.3
  */
 public class AppTest {
 	@BeforeClass
@@ -43,7 +43,9 @@ public class AppTest {
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.buildings", "10");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.residentialUnits", "10");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.users", "99");
-		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.table_name", "sensoriclife_generator");
+		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.table_name_electricity", "sensoriclife_electricity");
+		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.table_name_water", "sensoriclife_water");
+		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.table_name_heating", "sensoriclife_heating");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.realtime", "true");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("generator.timefactor", "1");
 		org.sensoriclife.Config.getInstance().getProperties().setProperty("accumulo.table_name", "sensoriclife");
@@ -54,7 +56,9 @@ public class AppTest {
 	@Test
 	public void testTopology() throws TableNotFoundException, AccumuloException, AccumuloSecurityException, TableExistsException, IOException, InterruptedException {
 		Accumulo.getInstance().connect();
-		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name"), false);
+		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_electricity"));
+		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_water"));
+		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_heating"));
 		Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("accumulo.table_name"), false);
 
 		TopologyBuilder builder = new TopologyBuilder();
@@ -94,7 +98,9 @@ public class AppTest {
 		cluster.killTopology("test");
 		cluster.shutdown();
 
-		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("generator.table_name"));
+		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("generator.table_name_electricity"));
+		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("generator.table_name_water"));
+		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("generator.table_name_heating"));
 		Accumulo.getInstance().closeBashWriter(org.sensoriclife.Config.getProperty("accumulo.table_name"));
 
 		Iterator<Entry<Key, Value>> iterator = Accumulo.getInstance().scanAll(org.sensoriclife.Config.getProperty("accumulo.table_name"));
@@ -104,7 +110,9 @@ public class AppTest {
 		new WorldBolt();
 		assertTrue(i > WorldBolt.getCount());
 
-		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name"));
+		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name_electricity"));
+		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name_water"));
+		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("generator.table_name_heating"));
 		Accumulo.getInstance().deleteTable(org.sensoriclife.Config.getProperty("accumulo.table_name"));
 		Accumulo.getInstance().disconnect();
 	}

@@ -33,7 +33,7 @@ import org.sensoriclife.storm.bolts.WorldBolt;
 /**
  *
  * @author jnphilipp
- * @version 0.1.0
+ * @version 0.1.1
  */
 public class App {
 	public static void main(String args[]) {
@@ -63,7 +63,9 @@ public class App {
 		Map<String, String> defaults = new LinkedHashMap<>();
 		defaults.put("generator.realtime", "true");
 		defaults.put("generator.timefactor", "1");
-		defaults.put("generator.table_name", "sensoriclife_generator");
+		defaults.put("generator.table_name_electricity", "sensoriclife_electricity");
+		defaults.put("generator.table_name_water", "sensoriclife_water");
+		defaults.put("generator.table_name_heating", "sensoriclife_heating");
 		defaults.put("accumulo.table_name", "sensoriclife_consumptioun");
 		defaults.put("storm.debug", "false");
 		defaults.put("strom.num_workers", "1");
@@ -84,14 +86,18 @@ public class App {
 		try {
 			if ( org.sensoriclife.Config.getProperty("accumulo.name").isEmpty() && org.sensoriclife.Config.getProperty("accumulo.zooServers").isEmpty() && org.sensoriclife.Config.getProperty("accumulo.user").isEmpty() && org.sensoriclife.Config.getProperty("accumulo.password").isEmpty() ){
 				Accumulo.getInstance().connect();
-				Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name"), false);
+				Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_electricity"));
+				Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_water"));
+				Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_heating"));
 				Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("accumulo.table_name"), false);
 			}
 			else {
 				Accumulo.getInstance().connect(org.sensoriclife.Config.getProperty("accumulo.name"), org.sensoriclife.Config.getProperty("accumulo.zooServers"), org.sensoriclife.Config.getProperty("accumulo.user"), org.sensoriclife.Config.getProperty("accumulo.password"));
 
 				if ( createTables ) {
-					Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name"), false);
+					Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_electricity"));
+					Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_water"));
+					Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("generator.table_name_heating"));
 					Accumulo.getInstance().createTable(org.sensoriclife.Config.getProperty("accumulo.table_name"), false);
 				}
 			}
@@ -108,8 +114,8 @@ public class App {
 		if ( world ) {
 			try {
 				builder.setSpout("worldgenerator", new WorldGenerator(org.sensoriclife.Config.toMap()), 1);
-				builder.setBolt("worldbolt", new WorldBolt(Accumulo.getInstance(), org.sensoriclife.Config.getProperty("accumulo.table_name"))).shuffleGrouping("worldgenerator");
-				builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), 20).shuffleGrouping("worldbolt");
+				builder.setBolt("worldbolt", new WorldBolt(Accumulo.getInstance(), org.sensoriclife.Config.getProperty("accumulo.table_name")), 3).shuffleGrouping("worldgenerator");
+				builder.setBolt("accumulobolt", new AccumuloBolt(org.sensoriclife.Config.toMap()), org.sensoriclife.Config.getIntegerProperty("storm.num_accumulobolt")).shuffleGrouping("worldbolt");
 			}
 			catch ( TableNotFoundException e ) {
 				Logger.error(App.class, e.toString());
